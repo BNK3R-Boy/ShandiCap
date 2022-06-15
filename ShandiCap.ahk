@@ -2,14 +2,30 @@
 ; #Warn  ; Enable warnings to assist with detecting common errors.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
+#SingleInstance force
 #InstallKeybdHook
+
+If (!A_IsAdmin) {
+	SetEnv, UserInput, % DllCall( "GetCommandLine", "Str" )
+	Run *RunAs %UserInput% ; (A_AhkPath is usually optional If the script has the .ahk extension.) You would typically check  first.
+	ExitApp
+}
+
+SetEnv, TF, %A_Temp%\ShandiCap\
+SetEnv, ICO, %TF%ShandiCap.ico
+
+If !FileExist(TF) {
+	FileCreateDir, %TF%
+	FileInstall, ShandiCap.ico, %ICO%, 1
+}
+
 Menu, Tray, NoStandard
 Menu, Tray, Tip, ShandiCap
 Menu, Tray, Add, Reload, Reload
 Menu, Tray, Add,
 Menu, Tray, Add, Exit, Exit
 Menu, Tray, Default, Reload
-Menu, Tray, Icon, ShandiCap.ico
+Menu, Tray, Icon, %ICO%
 
 SetKeyDelay, 100, 400
 SetEnv, wPresses, 0
