@@ -1,4 +1,4 @@
-# ShandiCap
+# ShandiCap.exe
 Eng:
 
 WASD sprint helper for handicapped gamer
