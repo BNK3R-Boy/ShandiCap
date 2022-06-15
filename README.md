@@ -1,0 +1,2 @@
+# ShandiCap
+ WASD Autorun toggle
