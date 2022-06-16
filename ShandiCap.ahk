@@ -55,7 +55,7 @@ Presses() {
 	Loop {
 		If !(GetKeyState(_hotkey, "P"))
 			Return
-		Sleep 10
+		Sleep, 10
 	}
 }
 
