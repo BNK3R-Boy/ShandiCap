@@ -13,7 +13,11 @@ If (!A_IsAdmin) {
 	ExitApp
 }
 
-SetKeyDelay, 100, 400
+SetKeyDelay, 100, 300
+
+Global fnPresses := Func("Presses")
+Global LastPressedKey
+Global timertime := -1 * (DllCall("GetDoubleClickTime") + 100) ; Get the doubleclicktime in milliseconds
 Global  TF := A_Temp "\ShandiCap\"
 Global  ICO := TF "ShandiCap.ico"
 
@@ -30,11 +34,6 @@ Menu, Tray, Add, Exit, Exit
 Menu, Tray, Default, Reload
 Menu, Tray, Icon, %ICO%
 
-Global fnPresses := Func("Presses")
-Global wPresses, aPresses, sPresses, dPresses, LastPress, _hotkey, PressedKey, TimeBetweenPresses, LastPressedKey
-Global DoubleClickTime := DllCall("GetDoubleClickTime")	; Get the doubleclicktime in milliseconds
-Global timertime := DoubleClickTime * -1
-
 Hotkey, ~*w, %fnPresses%
 Hotkey, ~*a, %fnPresses%
 Hotkey, ~*s, %fnPresses%
@@ -44,17 +43,11 @@ Return
 
 Presses() {
 	_hotkey := StrReplace(A_ThisHotkey, "~*")
-	LastPress := A_TickCount
 	PressedKey := _hotkey
-	TimeBetweenPresses := A_TickCount - LastPress
 
-	If (LastPressedKey) And (PressedKey == LastPressedKey) {
-		IfGreater, TimeBetweenPresses, DoubleClickTime, TimeBetweenPresses := 0
-		IfGreater, %_hotkey%Presses, 2, GoSub, ResetPresses
-		IfLessOrEqual, TimeBetweenPresses, DoubleClickTime, %_hotkey%Presses++
-		IfEqual, %_hotkey%Presses, 2, ControlSend, ,{%_hotkey% down}{Shift}, A
-		LastPressedKey := 0
-	} Else
+	If (LastPressedKey) And (PressedKey == LastPressedKey)
+		ControlSend, ,{%_hotkey% down}{Shift}, A
+	Else
 		LastPressedKey := PressedKey
 
 	SetTimer, ResetPresses, %timertime%
@@ -67,11 +60,6 @@ Presses() {
 }
 
 ResetPresses:
-	wPresses := 0
-	aPresses := 0
-	sPresses := 0
-	dPresses := 0
-	LastPress := 0
 	LastPressedKey := 0
 Return
 
