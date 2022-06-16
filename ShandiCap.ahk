@@ -3,9 +3,8 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 #SingleInstance force
-#InstallKeybdHook
 #MaxThreadsPerHotkey 1
-#MaxThreadsBuffer Off
+#MaxThreadsBuffer 0
 
 If (!A_IsAdmin) {
 	SetEnv, UserInput, % DllCall( "GetCommandLine", "Str" )
@@ -17,7 +16,7 @@ SetKeyDelay, 100, 300
 
 Global fnPresses := Func("Presses")
 Global LastPressedKey
-Global timertime := -1 * (DllCall("GetDoubleClickTime") + 100) ; Get the doubleclicktime in milliseconds
+Global MemoryDrainTimer := -1 * (DllCall("GetDoubleClickTime") + 100) ; Get the double click time in milliseconds, add 100 to it and divide by -1 to get a negative number for memory drain time.
 Global TF := A_Temp "\ShandiCap\"
 Global ICO := TF "ShandiCap.ico"
 
@@ -44,24 +43,24 @@ Return
 Presses() {
 	_hotkey := StrReplace(A_ThisHotkey, "~*")
 	PressedKey := _hotkey
-
-	If (LastPressedKey) And (PressedKey == LastPressedKey)
+	If (LastPressedKey) And (PressedKey == LastPressedKey) {
 		ControlSend, ,{%_hotkey% down}{Shift}, A
-	Else
+		LastPressedKey := 0
+	} Else {
 		LastPressedKey := PressedKey
-
-	SetTimer, ResetPresses, %timertime%
+		SetTimer, ResetLastPressedKey, %MemoryDrainTimer%
+	}
 
 	Loop {
 		If !(GetKeyState(_hotkey, "P")) {
 			ControlSend, ,{%_hotkey% up}, A
 			Break
 		}
-		Sleep, 50
+		Sleep, 10
 	}
 }
 
-ResetPresses:
+ResetLastPressedKey:
 	LastPressedKey := 0
 Return
 
