@@ -4,6 +4,8 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 #SingleInstance force
 #InstallKeybdHook
+#MaxThreadsPerHotkey 1
+#MaxThreadsBuffer Off
 
 If (!A_IsAdmin) {
 	SetEnv, UserInput, % DllCall( "GetCommandLine", "Str" )
@@ -11,8 +13,9 @@ If (!A_IsAdmin) {
 	ExitApp
 }
 
-SetEnv, TF, %A_Temp%\ShandiCap\
-SetEnv, ICO, %TF%ShandiCap.ico
+SetKeyDelay, 100, 400
+Global  TF := A_Temp "\ShandiCap\"
+Global  ICO := TF "ShandiCap.ico"
 
 If !FileExist(TF) {
 	FileCreateDir, %TF%
@@ -27,30 +30,32 @@ Menu, Tray, Add, Exit, Exit
 Menu, Tray, Default, Reload
 Menu, Tray, Icon, %ICO%
 
-SetKeyDelay, 100, 400
-SetEnv, wPresses, 0
-SetEnv, aPresses, 0
-SetEnv, sPresses, 0
-SetEnv, dPresses, 0
-SetEnv, LastPress, 0
-SetEnv, DoubleClickTime, % 2 * DllCall("GetDoubleClickTime")	; Get the doubleclicktime in milliseconds
-SetEnv, timertime, % DoubleClickTime * -1
+Global fnPresses := Func("Presses")
+Global wPresses, aPresses, sPresses, dPresses, LastPress, _hotkey, PressedKey, TimeBetweenPresses, LastPressedKey
+Global DoubleClickTime := DllCall("GetDoubleClickTime")	; Get the doubleclicktime in milliseconds
+Global timertime := DoubleClickTime * -1
 
-Hotkey, ~*w, Presses
-Hotkey, ~*a, Presses
-Hotkey, ~*s, Presses
-Hotkey, ~*d, Presses
+Hotkey, ~*w, %fnPresses%
+Hotkey, ~*a, %fnPresses%
+Hotkey, ~*s, %fnPresses%
+Hotkey, ~*d, %fnPresses%
 
 Return
 
-Presses:
-	SetEnv, _hotkey, % StrReplace(A_ThisHotkey, "~*")
-	SetEnv, LastPress, A_TickCount
-	SetEnv, TimeBetweenPresses, A_TickCount - LastPress
-	IfGreater, TimeBetweenPresses, DoubleClickTime, SetEnv, TimeBetweenPresses, 0
-	IfGreater, %_hotkey%Presses, 2, GoSub, ResetPresses
-	IfLessOrEqual, TimeBetweenPresses, DoubleClickTime, EnvAdd, %_hotkey%Presses, 1
-	IfEqual, %_hotkey%Presses, 2, ControlSend, ,{%_hotkey% down}{Shift}, A
+Presses() {
+	_hotkey := StrReplace(A_ThisHotkey, "~*")
+	LastPress := A_TickCount
+	PressedKey := _hotkey
+	TimeBetweenPresses := A_TickCount - LastPress
+
+	If (LastPressedKey) And (PressedKey == LastPressedKey) {
+		IfGreater, TimeBetweenPresses, DoubleClickTime, TimeBetweenPresses := 0
+		IfGreater, %_hotkey%Presses, 2, GoSub, ResetPresses
+		IfLessOrEqual, TimeBetweenPresses, DoubleClickTime, %_hotkey%Presses++
+		IfEqual, %_hotkey%Presses, 2, ControlSend, ,{%_hotkey% down}{Shift}, A
+		LastPressedKey := 0
+	} Else
+		LastPressedKey := PressedKey
 
 	SetTimer, ResetPresses, %timertime%
 
@@ -59,14 +64,15 @@ Presses:
 			Return
 		Sleep 10
 	}
-Return
+}
 
 ResetPresses:
-	SetEnv, wPresses, 0
-	SetEnv, aPresses, 0
-	SetEnv, sPresses, 0
-	SetEnv, dPresses, 0
-	SetEnv, LastPress, 0
+	wPresses := 0
+	aPresses := 0
+	sPresses := 0
+	dPresses := 0
+	LastPress := 0
+	LastPressedKey := 0
 Return
 
 Reload:
