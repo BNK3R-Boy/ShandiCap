@@ -18,8 +18,8 @@ SetKeyDelay, 100, 300
 Global fnPresses := Func("Presses")
 Global LastPressedKey
 Global timertime := -1 * (DllCall("GetDoubleClickTime") + 100) ; Get the doubleclicktime in milliseconds
-Global  TF := A_Temp "\ShandiCap\"
-Global  ICO := TF "ShandiCap.ico"
+Global TF := A_Temp "\ShandiCap\"
+Global ICO := TF "ShandiCap.ico"
 
 If !FileExist(TF) {
 	FileCreateDir, %TF%
