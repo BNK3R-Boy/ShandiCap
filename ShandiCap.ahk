@@ -53,9 +53,11 @@ Presses() {
 	SetTimer, ResetPresses, %timertime%
 
 	Loop {
-		If !(GetKeyState(_hotkey, "P"))
-			Return
-		Sleep, 10
+		If !(GetKeyState(_hotkey, "P")) {
+			ControlSend, ,{%_hotkey% up}, A
+			Break
+		}
+		Sleep, 50
 	}
 }
 
