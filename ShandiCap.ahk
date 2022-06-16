@@ -12,17 +12,18 @@ If (!A_IsAdmin) {
 	ExitApp
 }
 
-SetKeyDelay, 100, 300
+SetKeyDelay, 10, 400
 
 Global fnPresses := Func("Presses")
 Global LastPressedKey
-Global MemoryDrainTimer := -1 * (DllCall("GetDoubleClickTime") + 100) ; Get the double click time in milliseconds, add 100 to it and divide by -1 to get a negative number for memory drain time.
-Global TF := A_Temp "\ShandiCap\"
-Global ICO := TF "ShandiCap.ico"
+Global MemoryDrainTimer := -1 * (DllCall("GetDoubleClickTime") + 250) ; Get the double click time in milliseconds, add 250 to it and divide by -1 to get a negative number for memory drain time.
+Global TF := A_Temp . "\ShandiCap\"
+Global ICO := TF . "ShandiCap.ico"
 
 If !FileExist(TF) {
 	FileCreateDir, %TF%
-	FileInstall, ShandiCap.ico, %ICO%, 1
+	If !FileExist(ICO)
+		FileInstall, ShandiCap.ico, %ICO%, 1
 }
 
 Menu, Tray, NoStandard
