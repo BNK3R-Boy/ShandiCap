@@ -12,11 +12,10 @@ If (!A_IsAdmin) {
 	ExitApp
 }
 
-SetKeyDelay, 10, 400
+Process, Priority,, High
 
 Global fnPresses := Func("Presses")
 Global LastPressedKey
-Global MemoryDrainTimer := -1 * (DllCall("GetDoubleClickTime") + 250) ; Get the double click time in milliseconds, add 250 to it and divide by -1 to get a negative number for memory drain time.
 Global TF := A_Temp . "\ShandiCap\"
 Global ICO := TF . "ShandiCap.ico"
 
@@ -43,27 +42,23 @@ Return
 
 Presses() {
 	_hotkey := StrReplace(A_ThisHotkey, "~*")
-	PressedKey := _hotkey
-	If (LastPressedKey) And (PressedKey == LastPressedKey) {
-		ControlSend, ,{%_hotkey% down}{Shift}, A
-		LastPressedKey := 0
-	} Else {
-		LastPressedKey := PressedKey
-		SetTimer, ResetLastPressedKey, %MemoryDrainTimer%
+	_priorhotkey := StrReplace(A_PriorHotkey, "~*")
+
+	if (_priorhotkey <> _hotkey or A_TimeSincePriorHotkey > 400)
+	{
+		; Too much time between presses, so this isn't a double-press.
+		KeyWait, %_hotkey%
+		return
 	}
 
-	Loop {
-		If !(GetKeyState(_hotkey, "P")) {
-			ControlSend, ,{%_hotkey% up}, A
-			Break
-		}
-		Sleep, 10
-	}
+	; You double-pressed a key.
+	Sleep, 300
+	ControlSend,, {Shift down}, A
+	Sleep, 300
+	ControlSend,, {Shift up}, A
+	KeyWait, %_hotkey%
 }
 
-ResetLastPressedKey:
-	LastPressedKey := 0
-Return
 
 Reload:
 	Reload
